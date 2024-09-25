@@ -12,6 +12,12 @@ builds:
     goarch:
       - amd64
       - arm64
+    flags:
+      - -tags
+      - netgo
+    ldflags:
+      - -s -w
+      - -extldflags "-static"
 
 snapshot:
   name_template: "{{ .Tag }}-next"
@@ -24,7 +30,6 @@ changelog:
 kos:
   - repository: ghcr.io/howardjohn/kubeconfig-proxy
     bare: true
-    preserve_import_paths: true
     tags:
       - "{{.Version}}"
       - latest
