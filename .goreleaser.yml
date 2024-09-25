@@ -30,6 +30,8 @@ changelog:
 kos:
   - repository: ghcr.io/howardjohn/kubeconfig-proxy
     bare: true
+    labels:
+      org.opencontainers.image.source: https://github.com/howardjohn/kubeconfig-proxy
     tags:
       - "{{.Version}}"
       - latest

@@ -34,4 +34,32 @@ First, run the server:
 $ kubeconfig-proxy server
 ```
 
-Then
+Then, for each context you want to proxy, run:
+
+```shell
+$ kubeconfig-proxy proxy
+```
+
+This will generate a copy of the context with `-kubeconfig-proxy` appended to the name.
+The old context is unmodified and can still be used.
+
+## System usage
+
+Place the service in `$HOME/.config/systemd/user/kubeconfig-proxy.service`:
+```
+# Service for kubeconfig-proxy
+[Unit]
+Description=kubeconfig-proxy
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+Restart=unless-stopped
+RestartSec=1
+ExecStart=%h/go/bin/kubeconfig-proxy server
+
+[Install]
+WantedBy=multi-user.target
+```
+
+And enable with `systemctl --user enable kubeconfig-proxy.service`

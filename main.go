@@ -46,6 +46,10 @@ func (m *MuxSwap) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 	mux.ServeHTTP(writer, request)
 }
 
+const (
+	UdsPath = "@/kubeconfig-proxy"
+)
+
 var serverCommand = &cobra.Command{
 	Use:   "server",
 	Short: "start proxy server",
@@ -58,11 +62,7 @@ var serverCommand = &cobra.Command{
 		muxHolder := &MuxSwap{
 			mux: mux,
 		}
-		if err := os.Remove("/tmp/kubeconfig-proxy"); err != nil && !os.IsNotExist(err) {
-			// Anything other than "file not found" is an error.
-			return fmt.Errorf("failed to remove unix://%s: %v", "/tmp/kubeconfig-proxy", err)
-		}
-		managementListener, err := net.Listen("unix", "/tmp/kubeconfig-proxy")
+		managementListener, err := net.Listen("unix", UdsPath)
 		if err != nil {
 			return err
 		}
@@ -212,7 +212,7 @@ kubeconfig-proxy proxy kind-kind
 		client := http.Client{}
 		client.Transport = &http.Transport{
 			DialContext: func(_ context.Context, _, _ string) (net.Conn, error) {
-				return net.Dial("unix", "/tmp/kubeconfig-proxy")
+				return net.Dial("unix", UdsPath)
 			},
 		}
 		req, err := http.NewRequest("POST", "http://local/", nil)
