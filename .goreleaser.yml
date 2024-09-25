@@ -1,7 +1,7 @@
 # To release:
-# git tag -a v0.1.0
+# git tag v0.1.0
 # git push origin v0.1.0
-# GITHUB_TOKEN=... goreleaser release
+# GITHUB_TOKEN=... goreleaser
 builds:
   - env:
       - CGO_ENABLED=0
@@ -22,7 +22,7 @@ changelog:
       - '^docs:'
       - '^test:'
 kos:
-  - repository: localhost:5000
+  - repository: ghcr.io/howardjohn/kubeconfig-proxy
     bare: true
     preserve_import_paths: true
     tags:
