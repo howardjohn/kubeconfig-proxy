@@ -144,14 +144,36 @@ func init() {
 var proxyCommand = &cobra.Command{
 	Use:   "proxy",
 	Short: "register the current context to be proxied",
-	Args:  cobra.ExactArgs(1),
+	Example: `
+# Translate the current context to point to the proxy
+kubeconfig-proxy proxy
+
+# Translate a specific context to point to the proxy
+kubeconfig-proxy proxy kind-kind
+`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		name := args[0]
-		ns, _, err := clientcmd.NewNonInteractiveDeferredLoadingClientConfig(
+		cc := clientcmd.NewNonInteractiveDeferredLoadingClientConfig(
 			&clientcmd.ClientConfigLoadingRules{ExplicitPath: KubeConfig},
-			&clientcmd.ConfigOverrides{}).Namespace()
+			&clientcmd.ConfigOverrides{})
+		var name string
+		if len(args) > 1 {
+			return fmt.Errorf("expected 0 or 1 args")
+		} else if len(args) == 1 {
+			name = args[0]
+		} else {
+			raw, err := cc.RawConfig()
+			if err != nil {
+				return fmt.Errorf("failed to load current context: %v", err)
+			}
+			name = raw.CurrentContext
+		}
+		ns, _, err := cc.Namespace()
 		if err != nil {
 			return err
+		}
+
+		if strings.HasSuffix(name, "-kubeconfig-proxy") {
+			return fmt.Errorf("this context is already registered")
 		}
 		cluster := name + "-kubeconfig-proxy"
 		kcfg := &kubeconfig.Config{
@@ -180,9 +202,13 @@ var proxyCommand = &cobra.Command{
 			CurrentContext: cluster,
 			OtherFields:    nil,
 		}
+
+		// Merge into their kubeconfig
 		if err := kubeconfig.WriteMerged(kcfg, KubeConfig); err != nil {
 			return err
 		}
+
+		// Tell our proxy to start handling this
 		client := http.Client{}
 		client.Transport = &http.Transport{
 			DialContext: func(_ context.Context, _, _ string) (net.Conn, error) {

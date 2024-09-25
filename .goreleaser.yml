@@ -1,0 +1,33 @@
+# To release:
+# git tag -a v0.1.0
+# git push origin v0.1.0
+# GITHUB_TOKEN=... goreleaser release
+builds:
+  - env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - windows
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+
+snapshot:
+  name_template: "{{ .Tag }}-next"
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
+kos:
+  - repository: localhost:5000
+    bare: true
+    preserve_import_paths: true
+    tags:
+      - "{{.Version}}"
+      - latest
+    platforms:
+      - linux/amd64
+      - linux/arm64
